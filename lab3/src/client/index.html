@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторна робота №3 — Хеш-функції та аналіз колізій</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cyber-background"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="cyber-header">
+            <div class="header-badge">ХНУРЕ • Кафедра ПІ • Безпека програм та даних</div>
+            <h1>Лабораторна робота №3</h1>
+            <p class="subtitle">Дослідження криптографічних хеш-функцій, лавинного ефекту та підбору колізій</p>
+            <div class="authors-badge">
+                <span>Бригада: <strong>Чуваєв А. О. (вар. 16)</strong> та <strong>Світенко С. М. (вар. 13)</strong></span>
+            </div>
+        </header>
+
+        <!-- Bit Length Selector Toolbar -->
+        <section class="toolbar-section">
+            <div class="toolbar-label">
+                <span class="pulse-dot"></span>
+                <span>Розрядність вихідного хешу:</span>
+            </div>
+            <div class="bit-selector">
+                <button class="bit-btn" data-bits="2">2 біти (4 стани)</button>
+                <button class="bit-btn" data-bits="4">4 біти (16 станів)</button>
+                <button class="bit-btn active" data-bits="8">8 бітів (256 станів)</button>
+            </div>
+        </section>
+
+        <!-- Main Workspace Grid -->
+        <div class="workspace-grid">
+            <!-- Left Column: Input and Hash Computation -->
+            <div class="panel card">
+                <div class="card-header">
+                    <h2><span class="icon">📁</span> Вхідні дані та обчислення хешу</h2>
+                    <span class="badge" id="detectedTypeBadge">Тип: Очікування</span>
+                </div>
+
+                <div class="samples-bar">
+                    <span class="bar-title">Зразки:</span>
+                    <button class="sample-btn" id="loadDocBtn">📄 Документ (.txt)</button>
+                    <button class="sample-btn" id="loadCodeBtn">💻 Код (.cs)</button>
+                    <button class="sample-btn" id="loadImgBtn">🖼️ Зображення (.png)</button>
+                </div>
+
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" id="fileInput" class="file-input" />
+                    <div class="drop-prompt">
+                        <span class="upload-icon">⬆️</span>
+                        <p>Перетягніть файл сюди або <strong>оберіть на диску</strong></p>
+                        <span class="file-meta" id="fileMetaInfo">Підтримуються: .txt, .docx, .cs, .js, .png, .bmp</span>
+                    </div>
+                </div>
+
+                <div class="text-input-wrap">
+                    <label for="textInput">Або введіть текст безпосередньо:</label>
+                    <textarea id="textInput" rows="3" placeholder="Введіть довільний текст для хешування..."></textarea>
+                </div>
+
+                <button class="cyber-btn primary-btn" id="computeHashBtn">
+                    <span class="btn-icon">⚡</span> Обчислити хеш-суму
+                </button>
+
+                <!-- Hash Results Card -->
+                <div class="result-display" id="hashResultBox">
+                    <div class="res-row">
+                        <span class="res-label">Двійковий вигляд:</span>
+                        <span class="res-value bit-val" id="resBitString">00000000</span>
+                    </div>
+                    <div class="res-row">
+                        <span class="res-label">Шістнадцятковий:</span>
+                        <span class="res-value hex-val" id="resHex">0x00</span>
+                    </div>
+                    <div class="res-row">
+                        <span class="res-label">Десятковий:</span>
+                        <span class="res-value dec-val" id="resDec">0</span>
+                    </div>
+                    <div class="res-row">
+                        <span class="res-label">Розмір даних:</span>
+                        <span class="res-value" id="resSize">0 байт</span>
+                    </div>
+                </div>
+
+                <!-- Avalanche Effect Test -->
+                <div class="avalanche-block">
+                    <div class="avalanche-header">
+                        <h3>🌊 Перевірка лавинного ефекту (Avalanche)</h3>
+                        <span class="criterion-badge">Критерій: &ge; 30%</span>
+                    </div>
+                    <p class="section-desc">Інверсія поодиноких бітів у вхідних даних для оцінки ступеня нелінійного розсіювання.</p>
+                    <button class="cyber-btn secondary-btn" id="testAvalancheBtn">Запустити аналіз лавинного ефекту</button>
+                    
+                    <div class="progress-wrap" id="avalancheWrap" style="display:none;">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="avalancheFill"></div>
+                        </div>
+                        <div class="avalanche-stats" id="avalancheStats">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Collisions & RSA Signature -->
+            <div class="right-stack">
+                <!-- Stealth Collision Panel -->
+                <div class="panel card">
+                    <div class="card-header">
+                        <h2><span class="icon">🎯</span> Автоматичний підбір прихованої колізії</h2>
+                        <span class="badge badge-stealth">Stealth Engine</span>
+                    </div>
+                    <p class="section-desc">
+                        Генерація нового файлу <strong>того ж типу</strong> з абсолютно <strong>ідентичним хешем</strong>, 
+                        проте іншим двійковим змістом за допомогою непомітних модифікацій (пробіли, коментарі, блоки після IEND).
+                    </p>
+
+                    <div class="auto-actions">
+                        <button class="cyber-btn success-btn" id="findCollisionBtn">
+                            <span class="btn-icon">🔍</span> Знайти приховану колізію
+                        </button>
+                        <button class="cyber-btn download-btn" id="downloadCollidedBtn" style="display:none;">
+                            <span class="btn-icon">💾</span> Завантажити колізійний файл
+                        </button>
+                    </div>
+
+                    <div class="collision-result" id="collisionResultBox" style="display:none;">
+                        <div class="collision-badge" id="collisionStatusBadge">Колізія знайдена</div>
+                        <div class="collision-info" id="collisionDetails"></div>
+                    </div>
+                </div>
+
+                <!-- Manual Collision Verification Panel -->
+                <div class="panel card">
+                    <div class="card-header">
+                        <h2><span class="icon">⚖️</span> Перевірка ручної колізії</h2>
+                        <span class="badge">Ручний підбір (2 біти)</span>
+                    </div>
+                    <div class="dual-inputs">
+                        <div class="input-col">
+                            <label>Текст/Файл №1:</label>
+                            <textarea id="manualText1" rows="2" placeholder="Текст варіанту 16..."></textarea>
+                        </div>
+                        <div class="input-col">
+                            <label>Текст/Файл №2:</label>
+                            <textarea id="manualText2" rows="2" placeholder="Текст варіанту 13..."></textarea>
+                        </div>
+                    </div>
+                    <button class="cyber-btn outline-btn" id="verifyManualBtn">Порівняти хеш-суми</button>
+                    <div class="manual-verif-result" id="manualVerifResult" style="display:none;"></div>
+                </div>
+
+                <!-- RSA Digital Signature (Extra Task 7*) -->
+                <div class="panel card">
+                    <div class="card-header">
+                        <h2><span class="icon">🔏</span> Цифровий підпис RSA-2048 (Завдання 7*)</h2>
+                        <span class="badge badge-accent">RSA-PKCS#1 v1.5</span>
+                    </div>
+                    <p class="section-desc">Формування та верифікація ЕЦП для обчисленого дайджесту повідомлення.</p>
+                    
+                    <div class="rsa-digest-target" id="rsaTargetInfo">
+                        <span class="code-label">Дайджест, що підписується (обчислено в лівій панелі):</span>
+                        <div class="target-digest-box">
+                            <span class="target-name" id="rsaTargetSource">Текст</span>: 
+                            <span class="target-val bit-val" id="rsaTargetDigest">00000000</span>
+                            <span class="target-hex hex-val" id="rsaTargetHex">(0x00)</span>
+                        </div>
+                    </div>
+
+                    <div class="rsa-actions">
+                        <button class="cyber-btn rsa-btn" id="signHashBtn">Сформувати ЕЦП дайджесту</button>
+                        <button class="cyber-btn verify-btn" id="verifySigBtn" style="display:none;">Верифікувати підпис</button>
+                        <button class="cyber-btn tamper-btn" id="tamperSigBtn" style="display:none;">Тест підробки</button>
+                    </div>
+
+                    <div class="rsa-output" id="rsaOutputBox" style="display:none;">
+                        <div class="code-block">
+                            <span class="code-label">Електронний цифровий підпис (Base64):</span>
+                            <pre id="signatureVal"></pre>
+                        </div>
+                        <div class="verification-badge" id="verifBadge"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="cyber-footer">
+            <p>ХНУРЕ | Факультет КН | Кафедра програмної інженерії | БПТД 2026</p>
+        </footer>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+</html>
