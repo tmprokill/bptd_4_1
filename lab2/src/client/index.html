@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лабораторна робота №2: Асиметричне шифрування RSA (.NET + JS)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="badges-row">
+          <span class="badge badge-accent">ХНУРЕ | Кафедра ПІ</span>
+          <span class="badge badge-secondary">БПТД: Лабораторна робота №2</span>
+          <span class="badge badge-outline">RSA-2048 (OAEP-SHA256)</span>
+        </div>
+        <h1>Асиметричне шифрування RSA: Двосторонній захищений обмін</h1>
+        <p class="subtitle">
+          Мережева взаємодія на двох різних мовах: <strong>.NET 10 (C#) Сервер</strong> + <strong>JavaScript (Web Crypto API) Клієнт</strong>.<br>
+          Бригада: <strong>Чуваєв А. О. (вар. 16)</strong> та <strong>Світенко С. М. (вар. 13)</strong>.
+        </p>
+      </div>
+      <div class="server-status-card" id="serverStatusCard">
+        <div class="status-indicator-dot" id="statusDot"></div>
+        <div class="status-info">
+          <span class="status-label">Статус сервера (.NET):</span>
+          <span class="status-value" id="statusText">Перевірка зв'язку...</span>
+        </div>
+        <button class="btn btn-sm btn-outline" id="btnReconnect" title="Оновити з'єднання">↻ Оновити</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <!-- Блок ключів -->
+      <section class="card keys-section">
+        <div class="card-header">
+          <h2>1. Асиметричні ключі сторін (RSA-2048 / SPKI PEM)</h2>
+          <span class="pill">Різні криптобібліотеки: Web Crypto API vs System.Security.Cryptography</span>
+        </div>
+        <div class="keys-grid">
+          <div class="key-box client-box">
+            <div class="key-box-header">
+              <span class="role-badge client-badge">КЛІЄНТ (JavaScript / Browser)</span>
+              <button class="btn btn-xs btn-outline" id="btnRegenClientKeys">Згенерувати новий ключ</button>
+            </div>
+            <p class="key-meta" id="clientKeyMeta">Генерація RSA 2048 біт...</p>
+            <div class="code-container">
+              <label>Публічний ключ клієнта (SPKI PEM):</label>
+              <textarea id="txtClientPubKey" readonly rows="6" placeholder="Генерація..."></textarea>
+            </div>
+          </div>
+
+          <div class="key-box server-box">
+            <div class="key-box-header">
+              <span class="role-badge server-badge">СЕРВЕР (.NET 10 / C#)</span>
+              <button class="btn btn-xs btn-outline" id="btnFetchServerKey">Запитати у сервера</button>
+            </div>
+            <p class="key-meta" id="serverKeyMeta">Отримання з /api/handshake...</p>
+            <div class="code-container">
+              <label>Публічний ключ сервера (SPKI PEM):</label>
+              <textarea id="txtServerPubKey" readonly rows="6" placeholder="Очікування підключення..."></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Блок авторизації та обміну -->
+      <section class="card exchange-section">
+        <div class="card-header">
+          <h2>2. Двостороння конфіденційна авторизація</h2>
+          <div class="preset-buttons">
+            <span class="preset-label">Швидкі пресети:</span>
+            <button class="btn btn-sm btn-preset" id="preset16">Чуваєв А. (вар. 16)</button>
+            <button class="btn btn-sm btn-preset" id="preset13">Світенко С. (вар. 13)</button>
+          </div>
+        </div>
+
+        <form id="authForm" class="auth-form" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inputLogin">Логін користувача:</label>
+              <input type="text" id="inputLogin" required value="chuvaiev_artem">
+            </div>
+            <div class="form-group">
+              <label for="inputPassword">Секретний пароль:</label>
+              <input type="password" id="inputPassword" required value="SecurePass_16!_2026">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputNote">Конфіденційні дані / Примітка:</label>
+            <input type="text" id="inputNote" value="Варіант 16: Двостороннє шифрування RSA-2048 без втрати цілісності">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btnSend">
+              <span class="btn-icon">🔒</span> Зашифрувати та відправити на сервер
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Візуалізація трафіку в незахищеному каналі -->
+      <section class="card traffic-section">
+        <div class="card-header">
+          <h2>3. Моніторинг незахищеного каналу зв'язку (Трафік & Криптограми)</h2>
+          <span class="pill pill-warning">⚠️ Відкритий інтернет-канал (Attacker Sniffer View)</span>
+        </div>
+
+        <div class="flow-steps">
+          <!-- Крок 1: Клієнт формує -->
+          <div class="flow-step">
+            <div class="step-header">
+              <span class="step-number">1</span>
+              <h3>Вихідний відкритий запит клієнта (Plaintext JSON)</h3>
+            </div>
+            <pre class="code-view" id="step1Plaintext">Очікування відправки форми...</pre>
+          </div>
+
+          <!-- Крок 2: Передача від клієнта на сервер -->
+          <div class="flow-step highlight-step">
+            <div class="step-header">
+              <span class="step-number">2</span>
+              <h3>Пакет у мережі: Клієнт → Сервер (Base64 Ciphertext, RSA-2048)</h3>
+            </div>
+            <p class="step-desc">Зловмисник без приватного ключа сервера <strong>не може</strong> відновити дані:</p>
+            <textarea class="code-view cipher-view" id="step2Cipher" readonly rows="3" placeholder="Шифротекст з'явиться тут після відправки..."></textarea>
+          </div>
+
+          <!-- Крок 3: Передача відповіді сервера клієнту -->
+          <div class="flow-step highlight-step-alt">
+            <div class="step-header">
+              <span class="step-number">3</span>
+              <h3>Пакет у мережі: Сервер → Клієнт (Base64 Ciphertext, RSA-2048)</h3>
+            </div>
+            <p class="step-desc">Сервер зашифрував відповідь відкритим ключем клієнта:</p>
+            <textarea class="code-view cipher-view" id="step3Cipher" readonly rows="3" placeholder="Шифрована відповідь сервера з'явиться тут..."></textarea>
+          </div>
+
+          <!-- Крок 4: Розшифрована клієнтом відповідь -->
+          <div class="flow-step">
+            <div class="step-header">
+              <span class="step-number">4</span>
+              <h3>Розшифрована клієнтом відповідь сервера (Plaintext JSON)</h3>
+            </div>
+            <pre class="code-view success-view" id="step4Decrypted">Очікування відповіді від сервера...</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Журнал подій -->
+      <section class="card log-section">
+        <div class="card-header">
+          <h2>4. Журнал операцій безпеки (Audit Log)</h2>
+          <button class="btn btn-xs btn-outline" id="btnClearLog">Очистити</button>
+        </div>
+        <div class="log-terminal" id="logTerminal">
+          <div class="log-line log-info">[СИСТЕМА]: Ініціалізація криптографічного клієнта Web Crypto API...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>© 2026 ХНУРЕ, Кафедра програмної інженерії. Дисципліна: «Безпека програм та даних».</p>
+    </footer>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>
