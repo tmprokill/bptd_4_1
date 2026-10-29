@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторна робота №4 — Обмін ключами Діффі-Хеллмана та безпечний чат</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cyber-background"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="cyber-header">
+            <div class="header-badge">ХНУРЕ • Кафедра ПІ • Безпека програм та даних</div>
+            <h1>Лабораторна робота №4</h1>
+            <p class="subtitle">Алгоритм обміну ключами Діффі-Хеллмана та безпечний груповий чат (AES-256-GCM)</p>
+            <div class="authors-badge">
+                <span>Бригада: <strong>Чуваєв А. О. (вар. 16)</strong> та <strong>Світенко С. М. (вар. 13)</strong></span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="group-dh">👥 Груповий обмін (N &ge; 3)</button>
+            <button class="tab-btn" data-tab="chat">💬 Безпечний чат (AES-GCM)</button>
+        </nav>
+
+        <!-- Tab 1: Group DH (N >= 3) -->
+        <section class="tab-content active" id="tab-group-dh">
+            <div class="grid-2col">
+                <!-- Setup & Participants -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="icon">⚙️</span> Параметри та учасники групи (N &ge; 3)</h2>
+                        <span class="badge badge-accent">Circular GDH</span>
+                    </div>
+                    <p class="section-desc">
+                        Кільцевий груповий протокол формує <strong>єдиний спільний секретний ключ</strong> 
+                        <code><i>K</i> = <i>g</i><sup><i>x</i><sub>1</sub> &middot; <i>x</i><sub>2</sub> &middot; <i>x</i><sub>3</sub> &hellip;</sup> mod <i>p</i> для всіх учасників без потреби довіри до сервера.
+                    </p>
+
+                    <div class="participants-list" id="participantsContainer">
+                        <div class="participant-item">
+                            <span class="p-num">1</span>
+                            <input type="text" class="p-name" value="Чуваєв А. О. (вар. 16)" />
+                        </div>
+                        <div class="participant-item">
+                            <span class="p-num">2</span>
+                            <input type="text" class="p-name" value="Світенко С. М. (вар. 13)" />
+                        </div>
+                        <div class="participant-item">
+                            <span class="p-num">3</span>
+                            <input type="text" class="p-name" value="Олійник О. О. (викладач)" />
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="cyber-btn secondary-btn" id="addParticipantBtn">+ Додати учасника</button>
+                        <button class="cyber-btn primary-btn" id="initGroupDhBtn">🚀 Запустити обмін ключами</button>
+                    </div>
+
+                    <div class="params-box" id="systemParamsBox" style="display:none;">
+                        <div class="param-row">
+                            <span class="param-lbl">Генератор G:</span>
+                            <span class="param-val" id="dispG">2</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-lbl">Модуль P (256-біт):</span>
+                            <span class="param-val code-inline" id="dispP">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Keys & Shared Secret -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="icon">🔑</span> Спільний груповий ключ K</h2>
+                        <span class="badge badge-success" id="groupStatusBadge">Очікування запуску</span>
+                    </div>
+
+                    <div class="result-box" id="groupResultBox">
+                        <div class="res-item">
+                            <span class="res-lbl">Спільний груповий секрет (K = g^(a*b*c) mod p):</span>
+                            <pre id="dispGroupSecret">Натисніть "Запустити обмін ключами"</pre>
+                        </div>
+                        <div class="res-item">
+                            <span class="res-lbl">Деривований сесійний ключ AES-256 (Base64):</span>
+                            <div class="key-badge" id="dispAesKey">--</div>
+                        </div>
+                    </div>
+
+                    <h3 class="sub-heading">Раунди кільцевого каскаду:</h3>
+                    <div class="steps-flow" id="stepsFlowContainer">
+                        <p class="empty-hint">Тут відображатимуться переходи токенів між учасниками.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Participant Keys Section -->
+            <div class="card full-width-card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h2><span class="icon">👥</span> Індивідуальні пари ключів учасників групи</h2>
+                    <span class="badge badge-accent">CSPRNG 256-bit BigInteger</span>
+                </div>
+                <p class="section-desc">
+                    Кожен користувач володіє власним таємним закритим ключем <code><i>x<sub>i</sub></i></code>, публічним відкритим токеном <code><i>Y<sub>i</sub> = g<sup>x<sub>i</sub></sup> mod p</i></code> 
+                    та в результаті каскадного обміну розраховує ідентичний фінальний спільний ключ <code><i>K</i></code>.
+                </p>
+
+                <div class="user-keys-grid" id="userKeysContainer">
+                    <p class="empty-hint">Ключі учасників будуть згенеровані після запуску протоколу.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Encrypted Multi-User Chat -->
+        <section class="tab-content" id="tab-chat">
+            <div class="card chat-card">
+                <div class="chat-header">
+                    <div>
+                        <h2><span class="icon">💬</span> Захищена кімната групового чату</h2>
+                        <span class="chat-sub">Шифрування: <strong>AES-256-GCM</strong> на основі спільного ключа Діффі-Хеллмана</span>
+                    </div>
+                    <div class="sender-select-wrap">
+                        <label for="currentSenderSelect">Писати від імені:</label>
+                        <select id="currentSenderSelect">
+                            <option value="Чуваєв А. О. (вар. 16)">Чуваєв А. О. (вар. 16)</option>
+                            <option value="Світенко С. М. (вар. 13)">Світенко С. М. (вар. 13)</option>
+                            <option value="Олійник О. О. (викладач)">Олійник О. О. (викладач)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Active Sender Keys Strip -->
+                <div class="sender-keys-strip" id="activeSenderKeysStrip">
+                    <div class="strip-item">
+                        <span class="strip-lbl">Активний відправник:</span>
+                        <strong class="strip-val" id="stripSenderName">...</strong>
+                    </div>
+                    <div class="strip-item">
+                        <span class="strip-lbl">Закритий ключ (x):</span>
+                        <span class="strip-val code-inline" id="stripSenderPriv" title="Закритий ключ відправника">...</span>
+                    </div>
+                    <div class="strip-item">
+                        <span class="strip-lbl">Відкритий токен (Y):</span>
+                        <span class="strip-val code-inline" id="stripSenderPub" title="Відкритий токен відправника">...</span>
+                    </div>
+                    <div class="strip-item">
+                        <span class="strip-lbl">Груповий ключ AES-256:</span>
+                        <span class="strip-val key-badge-sm" id="stripSenderAes">...</span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-system-msg">Кімнату чату ініціалізовано. Усі повідомлення шифруються на клієнті перед відправкою.</div>
+                </div>
+
+                <div class="chat-input-bar">
+                    <input type="text" id="chatInput" placeholder="Введіть повідомлення для зашифрованої передачі..." />
+                    <button class="cyber-btn primary-btn" id="sendChatBtn">
+                        <span class="btn-icon">🔒</span> Надіслати (AES-GCM)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="cyber-footer">
+            <p>ХНУРЕ | Факультет КН | Кафедра програмної інженерії | БПТД 2026</p>
+        </footer>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+</html>
