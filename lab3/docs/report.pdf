@@ -2968,12 +2968,12 @@ F��Mk�I���R�B|��&إ�n�ऋ��(�H�r�Tų��9�`��ըa�&�ʺ���:�l
 endstream
 endobj
 756 0 obj
-<</Title<FEFF0414043E0441043B0456043404360435043D043D044F0020043A04400438043F0442043E043304400430044404560447043D043804450020044504350448002D04440443043D043A044604560439002C0020043B043004320438043D043D043E0433043E0020043504440435043A0442044300200442043000200430043D0430043B0456043700200441044204560439043A043E04410442045600200434043E0020043A043E043B0456043704560439>/Author<FEFF04270443043204300454043200200410002E0020041E002E00200028043204300440002E0020003100360029002C002004210432045604420435043D043A043E00200421002E0020041C002E00200028043204300440002E0020003100330029>/Creator(Typst 0.15.1)/ModDate(D:20261030134053+01'00)/CreationDate(D:20261030134053+01'00)>>
+<</Title<FEFF0414043E0441043B0456043404360435043D043D044F0020043A04400438043F0442043E043304400430044404560447043D043804450020044504350448002D04440443043D043A044604560439002C0020043B043004320438043D043D043E0433043E0020043504440435043A0442044300200442043000200430043D0430043B0456043700200441044204560439043A043E04410442045600200434043E0020043A043E043B0456043704560439>/Author<FEFF04270443043204300454043200200410002E0020041E002E00200028043204300440002E0020003100360029002C002004210432045604420435043D043A043E00200421002E0020041C002E00200028043204300440002E0020003100330029>/Creator(Typst 0.15.1)/ModDate(D:20261030153250+01'00)/CreationDate(D:20261030153250+01'00)>>
 endobj
 757 0 obj
 <</Length 1373/Type/Metadata/Subtype/XML>>
 stream
-<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="xmp-writer"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"  xmlns:xmp="http://ns.adobe.com/xap/1.0/"  xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"  xmlns:xmpTPg="http://ns.adobe.com/xap/1.0/t/pg/"  xmlns:pdf="http://ns.adobe.com/pdf/1.3/" ><dc:title><rdf:Alt><rdf:li xml:lang="x-default">Дослідження криптографічних хеш-функцій, лавинного ефекту та аналіз стійкості до колізій</rdf:li></rdf:Alt></dc:title><dc:creator><rdf:Seq><rdf:li>Чуваєв А. О. (вар. 16), Світенко С. М. (вар. 13)</rdf:li></rdf:Seq></dc:creator><xmp:CreatorTool>Typst 0.15.1</xmp:CreatorTool><dc:language><rdf:Bag><rdf:li>uk</rdf:li></rdf:Bag></dc:language><xmp:ModifyDate>2026-10-30T13:40:53+01:00</xmp:ModifyDate><xmp:CreateDate>2026-10-30T13:40:53+01:00</xmp:CreateDate><xmpTPg:NPages>13</xmpTPg:NPages><dc:format>application/pdf</dc:format><xmpMM:InstanceID>w3UHoh/wnEARxqwDsFoo1Q==</xmpMM:InstanceID><xmpMM:DocumentID>U9FXo3BRu95/StpXRSZkuA==</xmpMM:DocumentID><xmpMM:RenditionClass>proof</xmpMM:RenditionClass><pdf:PDFVersion>1.7</pdf:PDFVersion></rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="r"?>
+<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="xmp-writer"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"  xmlns:xmp="http://ns.adobe.com/xap/1.0/"  xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"  xmlns:xmpTPg="http://ns.adobe.com/xap/1.0/t/pg/"  xmlns:pdf="http://ns.adobe.com/pdf/1.3/" ><dc:title><rdf:Alt><rdf:li xml:lang="x-default">Дослідження криптографічних хеш-функцій, лавинного ефекту та аналіз стійкості до колізій</rdf:li></rdf:Alt></dc:title><dc:creator><rdf:Seq><rdf:li>Чуваєв А. О. (вар. 16), Світенко С. М. (вар. 13)</rdf:li></rdf:Seq></dc:creator><xmp:CreatorTool>Typst 0.15.1</xmp:CreatorTool><dc:language><rdf:Bag><rdf:li>uk</rdf:li></rdf:Bag></dc:language><xmp:ModifyDate>2026-10-30T15:32:50+01:00</xmp:ModifyDate><xmp:CreateDate>2026-10-30T15:32:50+01:00</xmp:CreateDate><xmpTPg:NPages>13</xmpTPg:NPages><dc:format>application/pdf</dc:format><xmpMM:InstanceID>vU1uQZoLIKslGnvouLGGGg==</xmpMM:InstanceID><xmpMM:DocumentID>U9FXo3BRu95/StpXRSZkuA==</xmpMM:DocumentID><xmpMM:RenditionClass>proof</xmpMM:RenditionClass><pdf:PDFVersion>1.7</pdf:PDFVersion></rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="r"?>
 endstream
 endobj
 758 0 obj
@@ -3741,7 +3741,7 @@ xref
 0000261393 00000 n
 0000262844 00000 n
 trailer
-<</Size 759/Root 758 0 R/Info 756 0 R/ID[(U9FXo3BRu95/StpXRSZkuA==)(w3UHoh/wnEARxqwDsFoo1Q==)]>>
+<</Size 759/Root 758 0 R/Info 756 0 R/ID[(U9FXo3BRu95/StpXRSZkuA==)(vU1uQZoLIKslGnvouLGGGg==)]>>
 startxref
 263031
 %%EOF

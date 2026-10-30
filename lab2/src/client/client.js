@@ -290,7 +290,7 @@ async function performSecureExchange() {
     step4Decrypted.textContent = `Помилка: ${err.message}`;
   } finally {
     btnSend.disabled = false;
-    btnSend.innerHTML = `<span class="btn-icon">🔒</span> Зашифрувати та відправити на сервер`;
+    btnSend.innerHTML = `Зашифрувати та відправити на сервер`;
   }
 }
 

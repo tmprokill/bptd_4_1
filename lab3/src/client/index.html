@@ -41,21 +41,21 @@
             <!-- Left Column: Input and Hash Computation -->
             <div class="panel card">
                 <div class="card-header">
-                    <h2><span class="icon">📁</span> Вхідні дані та обчислення хешу</h2>
+                    <h2>Вхідні дані та обчислення хешу</h2>
                     <span class="badge" id="detectedTypeBadge">Тип: Очікування</span>
                 </div>
 
                 <div class="samples-bar">
                     <span class="bar-title">Зразки:</span>
-                    <button class="sample-btn" id="loadDocBtn">📄 Документ (.txt)</button>
-                    <button class="sample-btn" id="loadCodeBtn">💻 Код (.cs)</button>
-                    <button class="sample-btn" id="loadImgBtn">🖼️ Зображення (.png)</button>
+                    <button class="sample-btn" id="loadDocBtn">Документ (.txt)</button>
+                    <button class="sample-btn" id="loadCodeBtn">Код (.cs)</button>
+                    <button class="sample-btn" id="loadImgBtn">Зображення (.png)</button>
                 </div>
 
                 <div class="drop-zone" id="dropZone">
                     <input type="file" id="fileInput" class="file-input" />
                     <div class="drop-prompt">
-                        <span class="upload-icon">⬆️</span>
+                        <span class="upload-icon">Файл</span>
                         <p>Перетягніть файл сюди або <strong>оберіть на диску</strong></p>
                         <span class="file-meta" id="fileMetaInfo">Підтримуються: .txt, .docx, .cs, .js, .png, .bmp</span>
                     </div>
@@ -67,7 +67,7 @@
                 </div>
 
                 <button class="cyber-btn primary-btn" id="computeHashBtn">
-                    <span class="btn-icon">⚡</span> Обчислити хеш-суму
+                    Обчислити хеш-суму
                 </button>
 
                 <!-- Hash Results Card -->
@@ -93,7 +93,7 @@
                 <!-- Avalanche Effect Test -->
                 <div class="avalanche-block">
                     <div class="avalanche-header">
-                        <h3>🌊 Перевірка лавинного ефекту (Avalanche)</h3>
+                        <h3>Перевірка лавинного ефекту (Avalanche)</h3>
                         <span class="criterion-badge">Критерій: &ge; 30%</span>
                     </div>
                     <p class="section-desc">Інверсія поодиноких бітів у вхідних даних для оцінки ступеня нелінійного розсіювання.</p>
@@ -113,7 +113,7 @@
                 <!-- Stealth Collision Panel -->
                 <div class="panel card">
                     <div class="card-header">
-                        <h2><span class="icon">🎯</span> Автоматичний підбір прихованої колізії</h2>
+                        <h2>Автоматичний підбір прихованої колізії</h2>
                         <span class="badge badge-stealth">Stealth Engine</span>
                     </div>
                     <p class="section-desc">
@@ -123,10 +123,10 @@
 
                     <div class="auto-actions">
                         <button class="cyber-btn success-btn" id="findCollisionBtn">
-                            <span class="btn-icon">🔍</span> Знайти приховану колізію
+                            Знайти приховану колізію
                         </button>
                         <button class="cyber-btn download-btn" id="downloadCollidedBtn" style="display:none;">
-                            <span class="btn-icon">💾</span> Завантажити колізійний файл
+                            Завантажити колізійний файл
                         </button>
                     </div>
 
@@ -139,7 +139,7 @@
                 <!-- Manual Collision Verification Panel -->
                 <div class="panel card">
                     <div class="card-header">
-                        <h2><span class="icon">⚖️</span> Перевірка ручної колізії</h2>
+                        <h2>Перевірка ручної колізії</h2>
                         <span class="badge">Ручний підбір (2 біти)</span>
                     </div>
                     <div class="dual-inputs">
@@ -159,7 +159,7 @@
                 <!-- RSA Digital Signature (Extra Task 7*) -->
                 <div class="panel card">
                     <div class="card-header">
-                        <h2><span class="icon">🔏</span> Цифровий підпис RSA-2048 (Завдання 7*)</h2>
+                        <h2>Цифровий підпис RSA-2048 (Завдання 7*)</h2>
                         <span class="badge badge-accent">RSA-PKCS#1 v1.5</span>
                     </div>
                     <p class="section-desc">Формування та верифікація ЕЦП для обчисленого дайджесту повідомлення.</p>

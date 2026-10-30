@@ -204,12 +204,23 @@
   ]
 )
 
-== Висновки
+#heading(numbering: none)[Висновки]
+
 У ході виконання практичного заняття №2 було детально проаналізовано математичні та інженерні засади шифру одноразового блокноту (One-Time Pad). Виявлено та усунено критичні помилки навчального опису алгоритму, зокрема недопустимість циклічного повторення ключа (яке нівелює інформаційну стійкість за Шенноном) та колізії нульового паддінгу в таблиці стиснення.
 
 Створено два незалежні мережеві додатки (`Server.cs` та `Client.cs`) на платформі .NET 10 у форматі file-based apps, здатні здійснювати двосторонній захищений обмін інформацією через TCP-сокети. Реалізовано підтримку як виправленого класичного режиму (straddling checkerboard + додавання за $mod 10$), так і сучасного машинного режиму (XOR над байтами UTF-8). Експериментальна перевірка підтвердила повну працездатність створеного захищеного каналу передачі даних між учасниками бригади.
 
-== Контрольні запитання
+#show: style.appendices
+
+= Посилання на вихідний код у репозиторії GitHub
+
+Повний вихідний код програмної реалізації клієнт-серверної системи практичного заняття №2 розміщено у віддаленому репозиторії GitHub:
+- *Каталог вихідного коду практичного заняття:* #link("https://github.com/tmprokill/bptd_4_1/tree/main/pz2/src")
+
+*Прямі посилання на файли проекту:*
+1. #link("https://github.com/tmprokill/bptd_4_1/blob/main/pz2/src/Server.cs")[*Server.cs*] -- серверний модуль на C\# (.NET 10): ініціалізація TCP-слухача, багатопотокова обробка підключень, генерація одноразових ключів за криптостійким алгоритмом, шифрування та передача криптограм.
+2. #link("https://github.com/tmprokill/bptd_4_1/blob/main/pz2/src/Client.cs")[*Client.cs*] -- клієнтський модуль на C\# (.NET 10): встановлення з'єднання, запит до сервера, отримання зашифрованих відповідей, зворотне декодування та розшифрування повідомлень.
+= Відповіді на контрольні запитання
 
 *2.5.1 Що таке атака (криптоаналіз)?* \
 Криптоаналіз — це наука та сукупність методів відновлення відкритого тексту повідомлення або знаходження секретного ключа без попереднього знання самого ключа (тобто подолання криптографічного захисту). Атакою називається конкретна спроба реалізації такого аналізу зловмисником із застосуванням математичних, статистичних або апаратних методів.
@@ -232,142 +243,3 @@
 
 *2.5.6 Чому повний перебір не використовується при атаці на алгоритм шифрування «одноразовий блокнот»?* \
 При спробі повного перебору всіх можливих ключів однакової довжини з шифротекстом алгоритм OTP генерує *абсолютно всі можливі осмислені тексти даної довжини* з однаковою ймовірністю. Наприклад, перехоплене зашифроване слово з 5 літер при переборі ключів дасть як слово «ТАКСІ», так і «СОСНА», «ПОВІН», «АТАКА» чи «ЗЕМЛЯ». Оскільки апостеріорна ймовірність знаходження відкритого тексту за наявності шифротексту дорівнює його апріорній ймовірності ($P(M|C) = P(M)$), криптоаналітик принципово не має жодного критерію визначити, яке саме з отриманих осмислених повідомлень є справжнім. Це і є проявом доведеної Клодом Шенноном абсолютної стійкості шифру.
-
-#show: style.appendices
-
-= Лістинг програми Server.cs
-```csharp
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-
-public class Server
-{
-    public const int DefaultPort = 5005;
-
-    public static void Main(string[] args)
-    {
-        Console.OutputEncoding = Encoding.UTF8;
-        int port = args.Length > 0 && int.TryParse(args[0], out int p) ? p : DefaultPort;
-
-        Console.WriteLine("==================================================");
-        Console.WriteLine("   СЕРВЕР БЕЗПЕЧНОГО ОБМІНУ (OTP NETWORK SERVER)");
-        Console.WriteLine("   Кафедра ПІ, ХНУРЕ — Практичне заняття №2");
-        Console.WriteLine("==================================================");
-
-        var listener = new TcpListener(IPAddress.Loopback, port);
-        try
-        {
-            listener.Start();
-            Console.WriteLine($"[*] Сервер успішно запущено на 127.0.0.1:{port}");
-            Console.WriteLine("[*] Очікування підключення клієнта...\n");
-
-            while (true)
-            {
-                using var client = listener.AcceptTcpClient();
-                Console.WriteLine($"[+] Клієнт підключився: {client.Client.RemoteEndPoint}");
-
-                using var stream = client.GetStream();
-                using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
-                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
-
-                var packet = NetworkPacket.ReadFrom(reader);
-                if (packet == null) continue;
-
-                string decryptedText = packet.Mode == "Straddling_Mod10"
-                    ? OneTimePadCore.DecryptMod10(packet.CipherData, packet.KeyData)
-                    : OneTimePadCore.DecryptXor(packet.CipherData, packet.KeyData);
-
-                Console.WriteLine($"--> РОЗШИФРОВАНО: \"{decryptedText}\"");
-
-                string replyText = $"Сервер підтверджує: повідомлення від {packet.Sender} прийнято цілісним!";
-                var (replyCipher, replyKey) = packet.Mode == "Straddling_Mod10"
-                    ? OneTimePadCore.EncryptMod10(replyText)
-                    : OneTimePadCore.EncryptXor(replyText);
-
-                var responsePacket = new NetworkPacket
-                {
-                    Sender = "Сервер (Олійник О. О. - ХНУРЕ)",
-                    Mode = packet.Mode,
-                    CipherData = replyCipher,
-                    KeyData = replyKey,
-                    Timestamp = DateTime.UtcNow
-                };
-                responsePacket.WriteTo(writer);
-            }
-        }
-        finally
-        {
-            listener.Stop();
-        }
-    }
-}
-```
-
-= Лістинг програми Client.cs
-```csharp
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-
-public class Client
-{
-    public const string DefaultHost = "127.0.0.1";
-    public const int DefaultPort = 5005;
-
-    public static void Main(string[] args)
-    {
-        Console.OutputEncoding = Encoding.UTF8;
-        string host = args.Length > 0 ? args[0] : DefaultHost;
-        int port = args.Length > 1 && int.TryParse(args[1], out int p) ? p : DefaultPort;
-
-        Console.WriteLine("[1] Передача в класичному режимі (Straddling + Mod10)");
-        string msg1 = "ПРИВІТ ВІД АРТЕМА ЧУВАЄВА. ВАРІАНТ ШІСТНАДЦЯТЬ. ЗАХИЩЕНИЙ КАНАЛ ЗВ'ЯЗКУ ПРАЦЮЄ!";
-        SendMessage(host, port, "Чуваєв А. О. (вар. 16)", msg1, "Straddling_Mod10");
-
-        Console.WriteLine("\n[2] Передача в машинному режимі (UTF-8 Bytes + XOR)");
-        string msg2 = "Світенко Софія (вар. 13): підтверджую готовність бригади до захисту ПЗ №2!";
-        SendMessage(host, port, "Світенко С. М. (вар. 13)", msg2, "Machine_XOR");
-    }
-
-    public static void SendMessage(string host, int port, string senderName, string plainText, string mode)
-    {
-        using var client = new TcpClient();
-        client.Connect(host, port);
-
-        using var stream = client.GetStream();
-        using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
-        using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
-
-        var (cipher, key) = mode == "Straddling_Mod10"
-            ? OneTimePadCore.EncryptMod10(plainText)
-            : OneTimePadCore.EncryptXor(plainText);
-
-        var packet = new NetworkPacket
-        {
-            Sender = senderName,
-            Mode = mode,
-            CipherData = cipher,
-            KeyData = key,
-            Timestamp = DateTime.UtcNow
-        };
-        packet.WriteTo(writer);
-
-        var responsePacket = NetworkPacket.ReadFrom(reader);
-        if (responsePacket != null)
-        {
-            string reply = responsePacket.Mode == "Straddling_Mod10"
-                ? OneTimePadCore.DecryptMod10(responsePacket.CipherData, responsePacket.KeyData)
-                : OneTimePadCore.DecryptXor(responsePacket.CipherData, responsePacket.KeyData);
-            Console.WriteLine($"--> ВІДПОВІДЬ СЕРВЕРА: \"{reply}\"");
-        }
-    }
-}
-```

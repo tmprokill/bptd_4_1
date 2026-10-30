@@ -293,12 +293,24 @@ $ p_i = (c_i - k_{i mod m} + n) mod n. $
   ]
 )
 
-== Висновки
+#heading(numbering: none)[Висновки]
+
 Під час виконання практичного заняття було досліджено та практично реалізовано три типи підстановочних криптографічних алгоритмів: моноалфавітний шифр Цезаря, поліалфавітний шифр Віженера та шифр одноразового блокноту (OTP) із попереднім числовим кодуванням за допомогою таблиці стиснення (straddling checkerboard) та додаванням/відніманням за модулем 10.
 
 Усі алгоритми розроблено на мові програмування C\# (.NET 10) у форматі file-based applications, що забезпечує компактність розгортання, модульність (один файл на клас) та двосторонню роботу (шифрування та дешифрування). В ході спільної роботи бригади у складі двох студентів успішно розшифровано криптограми варіантів 13 та 16, визначено індивідуальні підзавдання, згенеровано нові зашифровані повідомлення та перевірено їх коректність шляхом взаємного дешифрування. Дослідження продемонструвало теоретичні переваги та практичні обмеження кожного з шифрів, зокрема вразливість простих підстановок до частотного аналізу та необхідність використання випадкових ключів повної довжини для досягнення абсолютної криптографічної стійкості.
 
-== Контрольні запитання
+#show: style.appendices
+
+= Посилання на вихідний код у репозиторії GitHub
+
+Повний вихідний код програмної реалізації підстановочних шифрів практичного заняття №1 розміщено у віддаленому репозиторії GitHub:
+- *Каталог вихідного коду практичного заняття:* #link("https://github.com/tmprokill/bptd_4_1/tree/main/pz1/src")
+
+*Прямі посилання на файли проекту:*
+1. #link("https://github.com/tmprokill/bptd_4_1/blob/main/pz1/src/Caesar.cs")[*Caesar.cs*] -- програмна реалізація моноалфавітного шифру Цезаря з підтримкою української абетки (великі та малі літери, нормалізація зсуву по модулю $n$).
+2. #link("https://github.com/tmprokill/bptd_4_1/blob/main/pz1/src/Vigenere.cs")[*Vigenere.cs*] -- програмна реалізація поліалфавітного шифру Віженера з циклічним розгортанням ключового слова та фільтрацією неалфавітних символів.
+3. #link("https://github.com/tmprokill/bptd_4_1/blob/main/pz1/src/OneTimePad.cs")[*OneTimePad.cs*] -- програмна реалізація шифру одноразового блокноту (OTP) із попереднім числовим кодуванням за таблицею стиснення (straddling checkerboard), складанням та відніманням за модулем 10 і перевіркою повної оборотності.
+= Відповіді на контрольні запитання
 
 1. *До якого типу шифрів відноситься шифр Цезаря?* \
   Шифр Цезаря відноситься до моноалфавітних підстановочних шифрів (шифрів простої заміни), оскільки кожен символ відкритого тексту завжди однозначно замінюється одним і тим самим символом алфавіту із фіксованим циклічним зсувом.
@@ -342,231 +354,3 @@ $ p_i = (c_i - k_{i mod m} + n) mod n. $
 
 13. *Що таке циркулянт?* \
   Циркулянт (циркулянтна матриця) — це матриця, у якій кожен наступний рядок утворюється циклічним зсувом попереднього рядка на один елемент вправо або вліво. Таблиця додавання по модулю 10 (або таблиця Віженера) є класичним прикладом циркулянтної матриці.
-
-#show: style.appendices
-
-= Лістинг програми Caesar.cs
-```csharp
-using System;
-using System.Text;
-
-public class Caesar
-{
-    public const string AlphabetUpper = "АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ";
-    public const string AlphabetLower = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-
-    public static string Encrypt(string plainText, int key)
-    {
-        if (plainText == null) throw new ArgumentNullException(nameof(plainText));
-        int n = AlphabetUpper.Length;
-        int normalizedShift = ((key % n) + n) % n;
-
-        var sb = new StringBuilder(plainText.Length);
-        foreach (char c in plainText)
-        {
-            int upperIndex = AlphabetUpper.IndexOf(c);
-            if (upperIndex >= 0)
-            {
-                sb.Append(AlphabetUpper[(upperIndex + normalizedShift) % n]);
-                continue;
-            }
-            int lowerIndex = AlphabetLower.IndexOf(c);
-            if (lowerIndex >= 0)
-            {
-                sb.Append(AlphabetLower[(lowerIndex + normalizedShift) % n]);
-                continue;
-            }
-            sb.Append(c);
-        }
-        return sb.ToString();
-    }
-
-    public static string Decrypt(string cipherText, int key)
-    {
-        return Encrypt(cipherText, -key);
-    }
-}
-```
-
-= Лістинг програми Vigenere.cs
-```csharp
-using System;
-using System.Text;
-
-public class Vigenere
-{
-    public const string AlphabetUpper = "АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ";
-    public const string AlphabetLower = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-
-    public static string Encrypt(string plainText, string key)
-    {
-        if (plainText == null) throw new ArgumentNullException(nameof(plainText));
-        if (string.IsNullOrEmpty(key)) throw new ArgumentException("Ключ не може бути порожнім", nameof(key));
-
-        int n = AlphabetUpper.Length;
-        var sb = new StringBuilder(plainText.Length);
-        int keyIndex = 0;
-
-        foreach (char c in plainText)
-        {
-            int upperIndex = AlphabetUpper.IndexOf(c);
-            int lowerIndex = AlphabetLower.IndexOf(c);
-
-            if (upperIndex >= 0 || lowerIndex >= 0)
-            {
-                int keyShift = GetKeyShift(key, keyIndex++);
-                if (upperIndex >= 0)
-                    sb.Append(AlphabetUpper[(upperIndex + keyShift) % n]);
-                else
-                    sb.Append(AlphabetLower[(lowerIndex + keyShift) % n]);
-            }
-            else
-            {
-                sb.Append(c);
-            }
-        }
-        return sb.ToString();
-    }
-
-    public static string Decrypt(string cipherText, string key)
-    {
-        if (cipherText == null) throw new ArgumentNullException(nameof(cipherText));
-        if (string.IsNullOrEmpty(key)) throw new ArgumentException("Ключ не може бути порожнім", nameof(key));
-
-        int n = AlphabetUpper.Length;
-        var sb = new StringBuilder(cipherText.Length);
-        int keyIndex = 0;
-
-        foreach (char c in cipherText)
-        {
-            int upperIndex = AlphabetUpper.IndexOf(c);
-            int lowerIndex = AlphabetLower.IndexOf(c);
-
-            if (upperIndex >= 0 || lowerIndex >= 0)
-            {
-                int keyShift = GetKeyShift(key, keyIndex++);
-                if (upperIndex >= 0)
-                    sb.Append(AlphabetUpper[(upperIndex - keyShift + n) % n]);
-                else
-                    sb.Append(AlphabetLower[(lowerIndex - keyShift + n) % n]);
-            }
-            else
-            {
-                sb.Append(c);
-            }
-        }
-        return sb.ToString();
-    }
-
-    private static int GetKeyShift(string key, int index)
-    {
-        for (int i = 0; i < key.Length; i++)
-        {
-            char kc = key[(index + i) % key.Length];
-            int up = AlphabetUpper.IndexOf(kc);
-            if (up >= 0) return up;
-            int low = AlphabetLower.IndexOf(kc);
-            if (low >= 0) return low;
-        }
-        return 0;
-    }
-}
-```
-
-= Лістинг програми OneTimePad.cs
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-public class OneTimePad
-{
-    private static readonly Dictionary<char, string> CharToCode = new()
-    {
-        ['А'] = "1",  ['И'] = "2",  ['Т'] = "3",  ['Е'] = "4",  ['С'] = "5",  ['Н'] = "6",  ['О'] = "7",
-        ['Б'] = "81", ['В'] = "82", ['Г'] = "83", ['Ґ'] = "84", ['Д'] = "85", ['Є'] = "86", ['Ж'] = "87", ['З'] = "88", ['І'] = "89", ['Ї'] = "80",
-        ['Й'] = "91", ['К'] = "92", ['Л'] = "93", ['М'] = "94", ['П'] = "95", ['Р'] = "96", ['У'] = "97", ['Ф'] = "98", ['Х'] = "99", ['Ц'] = "90",
-        ['Ч'] = "01", ['Ш'] = "02", ['Щ'] = "03", ['Ь'] = "04", ['Ю'] = "05", ['Я'] = "06", [' '] = "07"
-    };
-
-    private static readonly Dictionary<string, char> CodeToChar = new();
-
-    static OneTimePad()
-    {
-        foreach (var kvp in CharToCode)
-            CodeToChar[kvp.Value] = kvp.Key;
-    }
-
-    public static string EncodeToDigits(string text)
-    {
-        var sb = new StringBuilder();
-        foreach (char c in text.ToUpperInvariant())
-            if (CharToCode.TryGetValue(c, out string? code))
-                sb.Append(code);
-        return sb.ToString();
-    }
-
-    public static string DecodeFromDigits(string digits)
-    {
-        var sb = new StringBuilder();
-        int i = 0;
-        while (i < digits.Length)
-        {
-            char first = digits[i];
-            if (first == '8' || first == '9' || first == '0')
-            {
-                if (i + 1 < digits.Length && CodeToChar.TryGetValue(digits.Substring(i, 2), out char c))
-                {
-                    sb.Append(c);
-                    i += 2;
-                }
-                else i++;
-            }
-            else
-            {
-                if (CodeToChar.TryGetValue(first.ToString(), out char c))
-                    sb.Append(c);
-                i++;
-            }
-        }
-        return sb.ToString();
-    }
-
-    public static string EncryptDigits(string plainDigits, string keyDigits)
-    {
-        var sb = new StringBuilder(plainDigits.Length);
-        for (int i = 0; i < plainDigits.Length; i++)
-        {
-            int p = plainDigits[i] - '0';
-            int k = keyDigits[i % keyDigits.Length] - '0';
-            sb.Append((p + k) % 10);
-        }
-        return sb.ToString();
-    }
-
-    public static string DecryptDigits(string cipherDigits, string keyDigits)
-    {
-        var sb = new StringBuilder(cipherDigits.Length);
-        for (int i = 0; i < cipherDigits.Length; i++)
-        {
-            int c = cipherDigits[i] - '0';
-            int k = keyDigits[i % keyDigits.Length] - '0';
-            sb.Append((c - k + 10) % 10);
-        }
-        return sb.ToString();
-    }
-
-    public static string Encrypt(string plainText, string key) =>
-        EncryptDigits(EncodeToDigits(plainText), IsAllDigits(key) ? key : EncodeToDigits(key));
-
-    public static string Decrypt(string cipherDigits, string key) =>
-        DecodeFromDigits(DecryptDigits(cipherDigits, IsAllDigits(key) ? key : EncodeToDigits(key)));
-
-    private static bool IsAllDigits(string str)
-    {
-        if (string.IsNullOrEmpty(str)) return false;
-        foreach (char c in str) if (c < '0' || c > '9') return false;
-        return true;
-    }
-}
-```

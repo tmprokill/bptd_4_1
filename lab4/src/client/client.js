@@ -120,7 +120,7 @@ function initGroupDh() {
             console.error('Помилка групового обміну:', err);
         } finally {
             initBtn.disabled = false;
-            initBtn.textContent = '🚀 Запустити обмін ключами';
+            initBtn.textContent = 'Запустити обмін ключами';
         }
     });
 }
@@ -135,19 +135,19 @@ function renderUserKeys(participants, sharedSecretHex) {
         card.className = 'user-key-card';
         card.innerHTML = `
             <div class="uk-header">
-                <span class="uk-name">👤 ${escapeHtml(p.name)}</span>
+                <span class="uk-name">${escapeHtml(p.name)}</span>
                 <span class="uk-badge">#${idx + 1} в кільці</span>
             </div>
             <div class="uk-field">
-                <span class="uk-lbl">🔒 Закритий секретний ключ (x<sub>${idx + 1}</sub>):</span>
+                <span class="uk-lbl">Закритий секретний ключ (x<sub>${idx + 1}</sub>):</span>
                 <div class="uk-val priv" title="Таємний ключ учасника">${escapeHtml(p.privHex || p.priv)}</div>
             </div>
             <div class="uk-field">
-                <span class="uk-lbl">🌐 Публічний токен (Y<sub>${idx + 1}</sub> = g<sup>x<sub>${idx + 1}</sub></sup> mod p):</span>
+                <span class="uk-lbl">Публічний токен (Y<sub>${idx + 1}</sub> = g<sup>x<sub>${idx + 1}</sub></sup> mod p):</span>
                 <div class="uk-val pub" title="Відкритий токен">${escapeHtml(p.pubHex || p.pub)}</div>
             </div>
             <div class="uk-field">
-                <span class="uk-lbl">🎯 Обчислений фінальний секрет (K):</span>
+                <span class="uk-lbl">Обчислений фінальний секрет (K):</span>
                 <div class="uk-val shared" title="Обчислений спільний ключ">${escapeHtml(p.finalKeyHex || sharedSecretHex)}</div>
             </div>
         `;
@@ -286,11 +286,11 @@ function createMessageBubble(m, currentSender) {
         </div>
         <div class="msg-body">
             <div class="msg-plaintext">
-                <span class="bubble-tag badge-success">✓ Розшифровано (AES-GCM)</span>
+                <span class="bubble-tag badge-success">[OK] Розшифровано (AES-GCM)</span>
                 <div class="msg-text">${escapeHtml(m.plaintext)}</div>
             </div>
             <button type="button" class="wire-toggle ${isOpen ? 'active' : ''}" onclick="toggleWire(this, '${m.id}')">
-                ${isOpen ? '🔒 Приховати зашифровані канальні дані' : '🔐 Переглянути шифротекст у каналі (AES-256-GCM)'}
+                ${isOpen ? 'Приховати зашифровані канальні дані' : 'Переглянути шифротекст у каналі (AES-256-GCM)'}
             </button>
             <div class="wire-content" style="display: ${isOpen ? 'block' : 'none'};">
                 <div class="wire-row"><strong>Ciphertext (Base64):</strong> <code>${escapeHtml(m.ciphertext)}</code></div>
@@ -307,12 +307,12 @@ window.toggleWire = function(btn, msgId) {
     if (content.style.display === 'block') {
         content.style.display = 'none';
         btn.classList.remove('active');
-        btn.textContent = '🔐 Переглянути шифротекст у каналі (AES-256-GCM)';
+        btn.textContent = 'Переглянути шифротекст у каналі (AES-256-GCM)';
         state.openWireMessageIds.delete(msgId);
     } else {
         content.style.display = 'block';
         btn.classList.add('active');
-        btn.textContent = '🔒 Приховати зашифровані канальні дані';
+        btn.textContent = 'Приховати зашифровані канальні дані';
         state.openWireMessageIds.add(msgId);
     }
 };
