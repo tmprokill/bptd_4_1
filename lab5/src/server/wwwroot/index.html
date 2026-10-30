@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЛР №5 — Платіжна форма інтернет-магазину (LiqPay & OAuth 2.0)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- ======================================================== -->
+    <!-- STEP 1: OAUTH 2.0 GATEKEEPER                             -->
+    <!-- ======================================================== -->
+    <div class="oauth-gatekeeper-overlay" id="oauthGatekeeper">
+        <div class="oauth-gatekeeper-card">
+            <div class="gatekeeper-header">
+                <span class="gatekeeper-badge">ХНУРЕ • Кафедра ПІ • БПТД 2026</span>
+                <h2>Вхід до Автосалону через OAuth 2.0</h2>
+                <p class="gatekeeper-subtitle">
+                    Для доступу до вітрини автосалону та оформлення покупок оберіть обліковий запис для проходження автентифікації за стандартом <strong>RFC 6749</strong>:
+                </p>
+            </div>
+
+            <div class="gatekeeper-accounts">
+                <!-- Account 1: Chuvaiev -->
+                <div class="account-card" onclick="loginWithOAuth('chuvaiev')">
+                    <div class="account-avatar">ЧА</div>
+                    <div class="account-info">
+                        <div class="account-name">Чуваєв Артем Олександрович</div>
+                        <div class="account-meta">Варіант 16 • Група ПЗПІ-23-3 • Студент</div>
+                        <div class="account-email">artem.chuvaiev@nure.ua</div>
+                    </div>
+                    <button class="btn btn-primary btn-sm">Увійти</button>
+                </div>
+
+                <!-- Account 2: Svitenko -->
+                <div class="account-card" onclick="loginWithOAuth('svitenko')">
+                    <div class="account-avatar">СС</div>
+                    <div class="account-info">
+                        <div class="account-name">Світенко С. М.</div>
+                        <div class="account-meta">Варіант 13 • Група ПЗПІ-23-3 • Студент</div>
+                        <div class="account-email">svitenko.s@nure.ua</div>
+                    </div>
+                    <button class="btn btn-primary btn-sm">Увійти</button>
+                </div>
+
+                <!-- Account 3: Oliinyk -->
+                <div class="account-card" onclick="loginWithOAuth('oliinyk')">
+                    <div class="account-avatar">ОО</div>
+                    <div class="account-info">
+                        <div class="account-name">Олійник О. О.</div>
+                        <div class="account-meta">Викладач кафедри програмної інженерії</div>
+                        <div class="account-email">oleg.oliinyk@nure.ua</div>
+                    </div>
+                    <button class="btn btn-primary btn-sm">Увійти</button>
+                </div>
+            </div>
+
+            <div class="gatekeeper-footer">
+                <p class="tech-note">
+                    Авторизація відбувається за протоколом <code>Authorization Code Grant</code>. Браузерний клієнт обмінює одноразовий код на <code>Bearer Access Token</code>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- STEP 2: MAIN STORE APPLICATION                           -->
+    <!-- ======================================================== -->
+    <div class="app-layout" id="appLayout" style="display: none;">
+        <!-- Top Bar -->
+        <header class="top-header">
+            <div class="brand-section">
+                <div class="brand-logo">ХА</div>
+                <div>
+                    <h1>Автосалон «ХНУРЕ-АВТО»</h1>
+                    <div class="brand-sub">Безпека програм та даних • Лабораторна робота №5 • Олійник О. О.</div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="brigade-badge">
+                    <span>Бригада: <strong>Чуваєв А. О. (вар. 16)</strong>, <strong>Світенко С. М. (вар. 13)</strong></span>
+                </div>
+
+                <!-- Shopping Cart Header Button -->
+                <button class="header-cart-btn" id="headerCartBtn" onclick="switchTab('cart')">
+                    <span>Кошик</span>
+                    <span class="cart-count-badge" id="headerCartBadge">0</span>
+                </button>
+
+                <!-- Dynamic OAuth User Widget -->
+                <div class="oauth-user-badge" id="oauthUserWidget"></div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs (Only 4 core tabs, no OAuth dump or LiqPay keys tab) -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="catalog">Каталог авто</button>
+            <button class="nav-tab" data-tab="cart">
+                Кошик <span class="tab-badge" id="tabCartBadge">0</span>
+            </button>
+            <button class="nav-tab" data-tab="payment">Оплата LiqPay</button>
+            <button class="nav-tab" data-tab="orders">Журнал замовлень</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- TAB 1: CAR SHOWROOM & INVENTORY -->
+            <section class="tab-pane active" id="pane-catalog">
+                <div class="section-intro">
+                    <div class="intro-text">
+                        <h2>Вітрина автомобілів та контроль складу</h2>
+                        <p>
+                            Вимога викладача: початковий залишок автомобіля <strong>ЗАЗ-968М — 3 шт.</strong> 
+                            Після успішної оплати через офіційний шлюз LiqPay кількість стає <strong>2 шт.</strong>, 
+                            а при відхиленні транзакції або неоплаті — залишається <strong>3 шт.</strong>
+                        </p>
+                    </div>
+                    <div class="intro-actions">
+                        <button class="btn btn-secondary" id="resetInventoryBtn">Скинути склад (ЗАЗ = 3 шт.)</button>
+                    </div>
+                </div>
+
+                <div class="cars-grid" id="carsContainer">
+                    <!-- Dynamic Car Cards -->
+                </div>
+            </section>
+
+            <!-- TAB 2: SHOPPING CART -->
+            <section class="tab-pane" id="pane-cart">
+                <div class="section-intro">
+                    <div class="intro-text">
+                        <h2>Кошик замовлення</h2>
+                        <p>Перевірте обрані автомобілі перед переходом до офіційного платіжного шлюзу LiqPay.</p>
+                    </div>
+                </div>
+
+                <div class="cart-layout">
+                    <!-- Left: Items list -->
+                    <div class="card cart-items-card">
+                        <div class="card-header">
+                            <h3>Обрані товари</h3>
+                            <button class="btn btn-sm btn-outline-danger" id="clearCartBtn" onclick="clearCart()">
+                                Очистити кошик
+                            </button>
+                        </div>
+
+                        <div id="emptyCartView" class="empty-state">
+                            <p>Ваш кошик наразі порожній.</p>
+                            <button class="btn btn-primary" onclick="switchTab('catalog')" style="margin-top: 1rem;">
+                                Перейти до каталогу авто
+                            </button>
+                        </div>
+
+                        <div id="cartTableWrapper" style="display: none;">
+                            <table class="clean-table cart-table">
+                                <thead>
+                                    <tr>
+                                        <th>Автомобіль</th>
+                                        <th>Ціна за шт.</th>
+                                        <th style="text-align: center;">Кількість</th>
+                                        <th style="text-align: right;">Разом</th>
+                                        <th style="text-align: center;">Дія</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cartTableBody">
+                                    <!-- Dynamic Cart Items -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Order Summary & Checkout -->
+                    <div class="card cart-summary-card">
+                        <div class="card-header">
+                            <h3>Підсумок</h3>
+                            <span class="badge badge-accent">OAuth Замовлення</span>
+                        </div>
+
+                        <div class="summary-details">
+                            <div class="sum-row">
+                                <span class="lbl">Покупець:</span>
+                                <strong class="val" id="cartSummaryUser">--</strong>
+                            </div>
+                            <div class="sum-row">
+                                <span class="lbl">Кількість авто:</span>
+                                <span class="val" id="cartSummaryCount">0 шт.</span>
+                            </div>
+                            <div class="sum-row">
+                                <span class="lbl">Валюта розрахунку:</span>
+                                <span class="val">UAH (Гривня)</span>
+                            </div>
+                            <div class="sum-divider"></div>
+                            <div class="sum-row total-row">
+                                <span class="lbl">Разом до сплати:</span>
+                                <strong class="val text-success" id="cartSummaryTotal">0.00 грн</strong>
+                            </div>
+                        </div>
+
+                        <div class="checkout-actions" style="margin-top: 1.5rem;">
+                            <button class="btn btn-liqpay btn-block btn-lg" id="checkoutCartBtn" onclick="checkoutCart()">
+                                Оформити замовлення та перейти до LiqPay
+                            </button>
+                            <p class="checkout-hint">
+                                Параметри замовлення шифруються цифровим підписом <code>SHA-1</code> на бекенді з використанням ключів із файлу конфігурації.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: LIQPAY PAYMENT TERMINAL -->
+            <section class="tab-pane" id="pane-payment">
+                <div class="payment-layout">
+                    <!-- Left: Current Order & Form Signatures -->
+                    <div class="card payment-card">
+                        <div class="card-header">
+                            <h3>Параметри замовлення та цифровий підпис</h3>
+                            <span class="badge badge-accent">SHA-1 / Base64</span>
+                        </div>
+                        <p class="card-desc">
+                            Відповідно до п. 5.3.1–5.3.2 методички ЛР №5:
+                            <code>signature = base64(sha1(private_key + data + private_key))</code>
+                        </p>
+
+                        <div id="noActiveOrderMsg" class="empty-state">
+                            <p>Додайте автомобіль у кошик та натисніть «Оформити замовлення та перейти до LiqPay»</p>
+                            <button class="btn btn-secondary" onclick="switchTab('catalog')" style="margin-top: 0.5rem;">
+                                До каталогу
+                            </button>
+                        </div>
+
+                        <div id="activeOrderDetails" style="display: none;">
+                            <div class="order-summary-box">
+                                <div class="order-sum-row">
+                                    <span class="lbl">ID Замовлення:</span>
+                                    <strong class="val text-primary" id="dispOrderId">--</strong>
+                                </div>
+                                <div class="order-sum-row">
+                                    <span class="lbl">Товари:</span>
+                                    <strong class="val" id="dispCarName">--</strong>
+                                </div>
+                                <div class="order-sum-row">
+                                    <span class="lbl">Сума до сплати:</span>
+                                    <strong class="val text-success" id="dispAmount">--</strong>
+                                </div>
+                                <div class="order-sum-row">
+                                    <span class="lbl">Покупець (OAuth):</span>
+                                    <span class="val" id="dispCustomer">--</span>
+                                </div>
+                            </div>
+
+                            <div class="code-block-section">
+                                <label class="code-lbl">Декодований JSON запиту (data):</label>
+                                <pre class="code-view" id="dispV3DataJson">--</pre>
+                            </div>
+
+                            <div class="code-block-section">
+                                <label class="code-lbl">Параметр [data] у Base64:</label>
+                                <pre class="code-view small-code" id="dispV3DataBase64">--</pre>
+                            </div>
+
+                            <div class="code-block-section">
+                                <label class="code-lbl">Розрахований цифровий підпис [signature] (Base64 SHA-1):</label>
+                                <div class="signature-badge" id="dispFormSignature">--</div>
+                            </div>
+
+                            <div class="code-block-section">
+                                <label class="code-lbl">Рядок конкатенації форми за методичкою:</label>
+                                <pre class="code-view small-code" id="dispConcatString">--</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Official LiqPay Checkout & Status Query -->
+                    <div class="card sandbox-card">
+                        <div class="card-header">
+                            <h3>Платіжний шлюз LiqPay</h3>
+                            <span class="badge badge-success">Офіційний LiqPay</span>
+                        </div>
+                        <p class="card-desc">
+                            Всі операції проводяться через офіційний платіжний шлюз <strong>liqpay.ua</strong>.
+                        </p>
+
+                        <!-- Live LiqPay Checkout Form -->
+                        <div class="live-checkout-box">
+                            <div class="live-box-header">
+                                <h4>1. Оплата на офіційному сайті liqpay.ua</h4>
+                            </div>
+                            <p class="live-box-desc">
+                                Натисніть кнопку нижче для переходу на захищену сторінку оплати LiqPay:
+                            </p>
+
+                            <!-- Official LiqPay HTML form targeting liqpay.ua -->
+                            <form id="realLiqPayForm" method="POST" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8" target="_blank" style="margin-bottom: 0.75rem;">
+                                <input type="hidden" name="data" id="realLiqPayData" value="" />
+                                <input type="hidden" name="signature" id="realLiqPaySignature" value="" />
+                                <button type="submit" class="btn btn-liqpay btn-block" id="openLiqPayCheckoutBtn" disabled>
+                                    Відкрити сторінку оплати на liqpay.ua
+                                </button>
+                            </form>
+                            <small class="cfg-hint">
+                                Ключі мерчанта налаштовано у файлі <code>appsettings.json</code> бекенда.
+                            </small>
+                        </div>
+
+                        <!-- Status Sync with real LiqPay -->
+                        <div class="live-checkout-box" style="margin-top: 1.25rem;">
+                            <div class="live-box-header">
+                                <h4>2. Перевірка статусу оплати в LiqPay</h4>
+                            </div>
+                            <p class="live-box-desc">
+                                Опитати офіційний статус платежу з сервера LiqPay (Server-to-Server Status API):
+                            </p>
+
+                            <button class="btn btn-primary btn-block" id="syncLiqPayStatusBtn" onclick="syncOrderStatusWithLiqPay()" disabled>
+                                Опитати статус оплати з сервера LiqPay
+                            </button>
+                        </div>
+
+                        <!-- Verification Result Terminal -->
+                        <div class="result-terminal" id="paymentResultTerminal" style="display: none; margin-top: 1.25rem;">
+                            <div class="terminal-header">
+                                <span class="term-title">Відповідь сервера LiqPay:</span>
+                                <span class="term-status" id="termStatusBadge">STATUS</span>
+                            </div>
+                            <div class="terminal-body" id="termBody">
+                                <!-- Log output -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: ORDERS & IDEMPOTENCY -->
+            <section class="tab-pane" id="pane-orders">
+                <div class="section-intro">
+                    <div class="intro-text">
+                        <h2>Журнал замовлень та аудит операцій</h2>
+                        <p>
+                            Фіксація станів замовлень, унікальних ідентифікаторів <code>order_id</code> та результатів перевірки криптографічного підпису.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="clean-table" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Замовлення</th>
+                                    <th>Товари</th>
+                                    <th>Сума</th>
+                                    <th>Покупець</th>
+                                    <th>Статус оплати</th>
+                                    <th>Залишок товару</th>
+                                    <th>ID Транзакції</th>
+                                    <th>Час</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>ХНУРЕ • Факультет комп'ютерних наук • Кафедра програмної інженерії • БПТД 2026</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
