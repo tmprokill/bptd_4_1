@@ -180,7 +180,29 @@ sandbox_priv_key_88492040215UAHsandbox_i71547430402ORD-ЗАЗ-968М...
 )
 ]
 
-== Відповіді на контрольні запитання
+#heading(numbering: none)[Висновки]
+
+У ході виконання лабораторної роботи №5 було успішно розроблено та досліджено архітектуру платіжного модуля веб-сайту:
+1. За допомогою фреймворку ASP.NET Core Minimal API (.NET 10) реалізовано повноцінний сервіс продажу автомобілів із суворим контролем складських залишків.
+2. Виконано індивідуальну вимогу викладача щодо контролю залишків: для автомобіля ЗАЗ-968М зафіксовано початковий залишок 3 шт., який після успішної транзакції зменшується до 2 шт., а при відхиленій оплаті -- залишається 3 шт.
+3. Реалізовано та протестовано алгоритм криптографічного цифрового підпису транзакцій LiqPay (Base64 SHA-1), доведено його надійність у захисті від атак підробки та підміни параметрів платежу (Tampering).
+4. Забезпечено захист від повторних списань на основі принципу ідемпотентності замовлень за унікальним `order_id`.
+5. Успішно імплементовано протокол безпечної авторизації клієнтів за стандартом OAuth 2.0 (RFC 6749) з отриманням токенів Bearer, що задовольнило критерій оцінювання на рівні «відмінно».
+
+#show: style.appendices
+
+= Посилання на вихідний код у репозиторії GitHub
+
+Вихідний код лабораторної роботи №5 розміщено у публічному репозиторії GitHub:
+- Головний файл веб-сервера Minimal API: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Program.cs")[lab5/src/server/Program.cs]
+- Сервіс криптографічних підписів LiqPay: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/LiqPayService.cs")[lab5/src/server/Services/LiqPayService.cs]
+- Сервіс складського обліку та ідемпотентності: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/InventoryService.cs")[lab5/src/server/Services/InventoryService.cs]
+- Провайдер автентифікації OAuth 2.0 (RFC 6749): #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/OAuthService.cs")[lab5/src/server/Services/OAuthService.cs]
+- Клієнтська частина та платіжний термінал: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/index.html")[lab5/src/server/wwwroot/index.html]
+- Інтерактивна логіка та тестові картки: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/app.js")[lab5/src/server/wwwroot/app.js]
+- Стилі веб-додатка: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/style.css")[lab5/src/server/wwwroot/style.css]
+
+= Відповіді на контрольні запитання
 
 *1. Поясніть поняття «банк-еквайєр» і «банк-емітент».*
 
@@ -233,20 +255,3 @@ sandbox_priv_key_88492040215UAHsandbox_i71547430402ORD-ЗАЗ-968М...
 - *Реальний режим (Production):* вимагає укладання юридичного договору з банком-еквайєром, проходження верифікації торговця (KYC/KYB), надання зареєстрованого доменного імені та комерційних API-ключів. Транзакції супроводжуються реальним блокуванням та перерахуванням коштів між банківськими рахунками за участю банків-емітентів і міжнародних платіжних систем із нарахуванням комісії за еквайринг.
 
 #pagebreak()
-== Висновки
-У ході виконання лабораторної роботи №5 було успішно розроблено та досліджено архітектуру платіжного модуля веб-сайту:
-1. За допомогою фреймворку ASP.NET Core Minimal API (.NET 10) реалізовано повноцінний сервіс продажу автомобілів із суворим контролем складських залишків.
-2. Виконано індивідуальну вимогу викладача щодо контролю залишків: для автомобіля ЗАЗ-968М зафіксовано початковий залишок 3 шт., який після успішної транзакції зменшується до 2 шт., а при відхиленій оплаті -- залишається 3 шт.
-3. Реалізовано та протестовано алгоритм криптографічного цифрового підпису транзакцій LiqPay (Base64 SHA-1), доведено його надійність у захисті від атак підробки та підміни параметрів платежу (Tampering).
-4. Забезпечено захист від повторних списань на основі принципу ідемпотентності замовлень за унікальним `order_id`.
-5. Успішно імплементовано протокол безпечної авторизації клієнтів за стандартом OAuth 2.0 (RFC 6749) з отриманням токенів Bearer, що задовольнило критерій оцінювання на рівні «відмінно».
-
-== Додаток А. Посилання на вихідний код у репозиторії GitHub
-Вихідний код лабораторної роботи №5 розміщено у публічному репозиторії GitHub:
-- Головний файл веб-сервера Minimal API: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Program.cs")[lab5/src/server/Program.cs]
-- Сервіс криптографічних підписів LiqPay: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/LiqPayService.cs")[lab5/src/server/Services/LiqPayService.cs]
-- Сервіс складського обліку та ідемпотентності: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/InventoryService.cs")[lab5/src/server/Services/InventoryService.cs]
-- Провайдер автентифікації OAuth 2.0 (RFC 6749): #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/Services/OAuthService.cs")[lab5/src/server/Services/OAuthService.cs]
-- Клієнтська частина та платіжний термінал: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/index.html")[lab5/src/server/wwwroot/index.html]
-- Інтерактивна логіка та тестові картки: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/app.js")[lab5/src/server/wwwroot/app.js]
-- Стилі веб-додатка: #link("https://github.com/ArtemChuvaiev/bptd_4_1/blob/main/lab5/src/server/wwwroot/style.css")[lab5/src/server/wwwroot/style.css]
